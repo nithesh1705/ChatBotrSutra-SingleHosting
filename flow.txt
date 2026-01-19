@@ -1,0 +1,30 @@
+End-to-End Application Flow
+
+User Query Input (Frontend Layer)
+The user enters a query in natural language (English) into the chatbot interface built using the React + Tailwind frontend. Once the user presses Enter, the message is captured and prepared as a JSON payload.
+
+Request Handling (Backend API Layer)
+The frontend sends the user’s query to the backend through a Flask REST API endpoint (/chat route using POST method`).
+The backend acts as the central orchestrator for processing the request.
+
+Intent Understanding & SQL Generation (AI Processing Layer – Gemini 2.5 Flash)
+The Flask backend forwards the user’s natural language query to the Gemini 2.5 Flash model.
+The model:
+
+Understands the user’s intent
+
+Interprets the business meaning of the question
+
+Generates an optimized SQL query based on the underlying dataset schema
+
+Data Execution Layer (In-memory Database Processing)
+The generated SQL query is executed on an in-memory SQLite database, which is populated from the uploaded Excel dataset.
+This ensures fast query execution without requiring a persistent external database.
+
+Result Interpretation & Natural Language Response (AI Response Layer)
+The SQL query result (tabular data) is sent back to the Gemini model, along with the original user question.
+The model converts the raw data output into a human-readable, context-aware natural language response.
+
+Response Delivery (Frontend Display Layer)
+The final AI-generated response is returned by the Flask API to the frontend.
+The chatbot UI displays the answer to the user in conversational format.

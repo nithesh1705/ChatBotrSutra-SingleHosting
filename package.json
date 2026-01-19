@@ -1,0 +1,13 @@
+{
+    "name": "chatbot-rsutra-backend",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "node api/index.js"
+    },
+    "dependencies": {
+        "@google/generative-ai": "^0.1.3",
+        "mysql2": "^3.9.0",
+        "dotenv": "^16.4.1"
+    }
+}
