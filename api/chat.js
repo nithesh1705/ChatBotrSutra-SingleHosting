@@ -52,6 +52,7 @@ Rules:
 - For questions about "available" or "list of" distinct values, use SELECT DISTINCT.
 - For date extraction, use MySQL functions (e.g., YEAR(date), MONTH(date)).
 - In query make sure the value in the columns of region and product the first letter should be in capital and rest following are small cases
+- Generate a SINGLE SQL statement. Do not generate multiple queries.
 
 Database schema:
 ${schemaInfo}`;
