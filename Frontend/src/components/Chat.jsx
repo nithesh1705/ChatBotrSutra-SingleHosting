@@ -36,8 +36,8 @@ const Chat = () => {
         setLoading(true);
 
         try {
-            // Use relative path for production compatibility
-            const response = await axios.post('/chat', { question: input });
+            // Use absolute path for Power BI / Embedded compatibility
+            const response = await axios.post('https://chat-bot-rsutra.vercel.app/chat', { question: input });
 
             const botMessage = {
                 id: Date.now() + 1,
