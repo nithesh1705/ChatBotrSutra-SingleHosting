@@ -1,10 +1,12 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Database configuration
 const dbConfig = {
@@ -30,8 +32,6 @@ async function getDbConnection() {
 
 // Helper: Generate SQL
 async function generateSql(question) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
     const schemaInfo = `
 Table: sales
 Columns:
@@ -42,7 +42,7 @@ product (varchar)
 revenue (decimal)
 `;
 
-    const prompt = `You convert user questions into SQL queries for a MySQL database.
+    const systemPrompt = `You convert user questions into SQL queries for a MySQL database.
 
 Rules:
 - Dialect: MySQL.
@@ -54,17 +54,21 @@ Rules:
 - In query make sure the value in the columns of region and product the first letter should be in capital and rest following are small cases
 
 Database schema:
-${schemaInfo}
-
-User question:
-${question}
-`;
+${schemaInfo}`;
 
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let sql = response.text().trim();
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: question }
+            ],
+            temperature: 0,
+        });
+
+        let sql = completion.choices[0].message.content.trim();
         // Clean markdown
+        console.log(sql);
         sql = sql.replace(/```sql/g, "").replace(/```/g, "").trim();
         return sql;
     } catch (error) {
@@ -75,26 +79,30 @@ ${question}
 
 // Helper: Generate Natural Answer
 async function generateNaturalAnswer(question, sqlResult) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    const prompt = `You are a business data assistant.
+    const systemPrompt = `You are a business data assistant.
 
 Rules:
 - Answer in simple business language.
 - Do not mention SQL, database, or code.
 - If result is empty, reply: "No data found for this request."
-- Keep answers concise.
+- Keep answers concise.`;
 
-User question:
+    const userPrompt = `User question:
 ${question}
 
 Data result:
-${JSON.stringify(sqlResult)}
-`;
+${JSON.stringify(sqlResult)}`;
 
     try {
-        const result = await model.generateContent(prompt);
-        return result.response.text().trim();
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+        });
+
+        return completion.choices[0].message.content.trim();
     } catch (error) {
         console.error("Error generating answer:", error);
         return "Sorry, I encountered an issue generating the answer.";
